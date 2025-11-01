@@ -6,7 +6,7 @@ from ta.momentum import RSIIndicator
 from google import genai
 from google.genai import types
 import os # Importem el mòdul os per accedir a les variables d'entorn
-from dotenv import load_dotenv # 👈 Importem la funció per carregar .env
+from dotenv import load_dotenv # Importem la funció per carregar .env
 import requests
 
 # Configuració de Pandas
@@ -434,4 +434,5 @@ try:
 
 except Exception as e:
   print(f"❌ ERROR. {e}")
+
 
