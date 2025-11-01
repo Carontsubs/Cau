@@ -3,7 +3,7 @@ import yfinance as yf
 import requests
 from datetime import datetime, timedelta
 import os
-from dotenv import load_dotenv # 👈 Importem la funció per carregar .env
+from dotenv import load_dotenv #Importem la funció per carregar .env
 
 load_dotenv() 
 
@@ -50,3 +50,4 @@ while True:
 
     # espera en segons
     time.sleep(900)
+
