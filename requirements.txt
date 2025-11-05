@@ -17,7 +17,7 @@ webencodings==0.5.1
 tabulate==0.9.0
 
 # === Funcions de Dades (Sense Numpy/Pandas) ===
-yfinance==0.2.65
+yfinance==0.1.95
 multitasking==0.0.11
 
 # === Paquets del teu mòdul ATLib i altres ===
