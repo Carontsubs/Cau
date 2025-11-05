@@ -7,6 +7,14 @@ from dotenv import load_dotenv #Importem la funció per carregar .env
 load_dotenv() 
 TOKEN = os.getenv("BOT_TOKEN")
 
+# 🌐 NOVES VARIABLES NECESSÀRIES PER A RENDER
+# 1. El PORT on ha d'escoltar el servidor (Render l'estableix automàticament)
+PORT = int(os.environ.get('PORT', 8080))
+
+# 2. L'URL del teu servei Render (la necessitem per configurar el Webhook a Telegram)
+# Aquesta variable l'hauràs de crear a l'entorn de Render amb el domini del teu servei.
+WEBHOOK_URL = os.environ.get('WEBHOOK_URL')
+
 # Función del comandos
 def veles(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Per veure les grafiques en veles disponibles, /Veles_BTC, /Veles_BNB, /Veles_ETH")
@@ -111,8 +119,24 @@ if __name__ == '__main__':
     dispatcher.add_handler(CommandHandler("Veles_ETH", veles_eth))
     dispatcher.add_handler(CommandHandler("PnF_ETH", pnf_eth))
 
-    # Start del bot
-    updater.start_polling()
+# CANVI CLAU PER A DESPLEGAMENT EN SERVIDOR WEB (Render)
 
-    # Detener el bot con Ctrl + C
+    if WEBHOOK_URL:
+        # 1. Configurar Webhook
+        updater.start_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            url_path=TOKEN,  # Utilitzem el token com a path secret
+            webhook_url=WEBHOOK_URL + TOKEN
+        )
+        
+        # 2. Assegurar-nos que Telegram utilitzi aquesta URL
+        print(f"Iniciant bot en mode Webhook a: {WEBHOOK_URL}")
+        
+    else:
+        # Mode per defecte: Long Polling (bo per a proves locals si falla WEBHOOK_URL)
+        print("Mode Long Polling (local). Per utilitzar Webhooks, defineix WEBHOOK_URL.")
+        updater.start_polling()
+    
+    # Mantenir el procés viu fins que el servidor l'aturi
     updater.idle()
