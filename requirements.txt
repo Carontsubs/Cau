@@ -1,5 +1,5 @@
 # === Dependències Essencials del Bot ===
-python-telegram-bot==13.13
+python-telegram-bot==20.8
 python-dotenv==1.1.1
 cachetools==4.2.2
 
