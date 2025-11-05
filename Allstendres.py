@@ -7,7 +7,7 @@ from dotenv import load_dotenv #Importem la funció per carregar .env
 load_dotenv() 
 TOKEN = os.getenv("TOKEN_TELEGRAM")
 
-# 🌐 NOVES VARIABLES NECESSÀRIES PER A RENDER
+# NOVES VARIABLES NECESSÀRIES PER A RENDER
 # 1. El PORT on ha d'escoltar el servidor (Render l'estableix automàticament)
 PORT = int(os.environ.get('PORT', 8080))
 
