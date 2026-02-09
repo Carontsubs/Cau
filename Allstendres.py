@@ -1,61 +1,58 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Updater, CommandHandler, CallbackContext, Application, ContextTypes
 import ATLib as at
 import os
-from dotenv import load_dotenv #Importem la funció per carregar .env
+from dotenv import load_dotenv
 
 load_dotenv() 
-TOKEN = os.getenv("BOT_TOKEN")
+
+TOKEN = os.getenv("TOKEN_TELEGRAM")
 
 # Función del comandos
-def veles(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("Per veure les grafiques en veles disponibles, /Veles_BTC, /Veles_BNB, /Veles_ETH")
+async def veles(update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Per veure les grafiques en veles disponibles, /Veles_BTC, /Veles_BNB, /Veles_ETH")
 
-def pnf(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("Per veure les grafiques Punt i Figura disponibles,/PnF_BTC, /PnF_BNB, /PnF_ETH ")
+async def pnf(update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Per veure les grafiques Punt i Figura disponibles,/PnF_BTC, /PnF_BNB, /PnF_ETH ")
 
-def veles_btc(update,context):
+async def veles_btc(update, context: ContextTypes.DEFAULT_TYPE):
     imagen_path = at.veles('BTC-USD')
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
 
-def pnf_btc(update,context):
+async def pnf_btc(update, context: ContextTypes.DEFAULT_TYPE):
     imagen_path = at.pnf('BTC-USD')
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
 
-def veles_bnb(update,context):
+async def veles_bnb(update, context: ContextTypes.DEFAULT_TYPE):
     imagen_path = at.veles('BNB-USD')
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
 
-def pnf_bnb(update,context):
+async def pnf_bnb(update, context: ContextTypes.DEFAULT_TYPE):
     imagen_path = at.pnf('BNB-USD')
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
 
-def veles_eth(update,context):
+async def veles_eth(update, context: ContextTypes.DEFAULT_TYPE):
     imagen_path = at.veles('ETH-USD')
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
 
-def pnf_eth(update,context):
+async def pnf_eth(update, context: ContextTypes.DEFAULT_TYPE):
     imagen_path = at.pnf('ETH-USD')
-    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
+    await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(imagen_path, 'rb'))
 
-def preus(update, context):
-    tickers = ['BTC-USD', 'BNB-USD', 'ETH-USD', 'DOGE-USD', 'SOL-USD']
+async def preus(update, context: ContextTypes.DEFAULT_TYPE):
+    tickers = ['BTC-USD', 'BNB-USD', 'ETH-USD', "DOGE-USD","SOL-USD"]
     message = at.obtenir_dades(tickers)
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
-def temperatura(update, context):
-    message = at.temperatura()
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
-
-def diesel(update, context):
+async def diesel(update, context: ContextTypes.DEFAULT_TYPE):
     message = at.diesel()
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
-def transit(update, context):
+async def transit(update, context: ContextTypes.DEFAULT_TYPE):
     message = at.transit()
-    context.bot.send_message(chat_id=update.effective_chat.id, text=message)
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=message)
 
-def receptes(update: Update, context: CallbackContext) -> None:
+async def receptes(update, context: ContextTypes.DEFAULT_TYPE) -> None:
     enllacos = at.obtenir_enllacos_des_de_pagina_principal('https://allstendres.blogspot.com')
     if enllacos:
         message = "Receptes disponibles:\n\n"
@@ -63,14 +60,14 @@ def receptes(update: Update, context: CallbackContext) -> None:
             nom_recepta = enllac_recepta.split('/')[-1].replace('-', ' ').title()[:-5]
             message += f"{idx}. {nom_recepta}\n"
         message += "\nSelecciona una recepte utilizant /selecciona X [X = número de la recepta]."
-        update.message.reply_text(message)
+        await update.message.reply_text(message)
     else:
-        update.message.reply_text("No s'han pogut obtenir les receptes disponibles.")
+        await update.message.reply_text("No s'han pogut obtenir les receptes disponibles.")
 
-def selecciona(update: Update, context: CallbackContext) -> None:
+async def selecciona(update, context: ContextTypes.DEFAULT_TYPE) -> None:
     args = context.args
     if len(args) == 0:
-        update.message.reply_text(
+        await update.message.reply_text(
             "Usa: /selecciona X [X = número de la recepta] per seleccionar una recepta."
         )
     else:
@@ -80,39 +77,39 @@ def selecciona(update: Update, context: CallbackContext) -> None:
             enllac_recepta = enllacos[num_recepta - 1]
             recepta = at.obtenir_recepta(enllac_recepta)
             if recepta:
-                update.message.reply_text(recepta)
+                await update.message.reply_text(recepta)
         else:
-            update.message.reply_text("Selecció no vàlida.")
+            await update.message.reply_text("Selecció no vàlida.")
 
-def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text("Hola! Per veure les receptes disponibles, usa /receptes.\nUsa /preus, /veles i /PnF per veure les dades de cryptos\n /transit per veure afectacions a BCN\n I /diesel per veure els preus de Diesel\n I /temperatura per la Temperatura d'avui de Masnou")
+async def start(update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Hola! Per veure les receptes disponibles, usa /receptes.\nUsa /preus, /veles i /PnF per veure les dades de cryptos\n /transit per veure afectacions a BCN\n I /diesel per veure els preus de Diesel")
 
 # Execucio del bot.        
 if __name__ == '__main__':
     # Token del bot proporcionado por BotFather
-    updater = Updater(TOKEN)
+    # updater = Updater(TOKEN)
+    application = Application.builder().token(TOKEN).build()
     
-    dispatcher = updater.dispatcher
+    # dispatcher = updater.dispatcher
 
     # Handlers
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("Temperatura", temperatura))
-    dispatcher.add_handler(CommandHandler("Transit", transit))
-    dispatcher.add_handler(CommandHandler("receptes", receptes))
-    dispatcher.add_handler(CommandHandler("selecciona", selecciona))
-    dispatcher.add_handler(CommandHandler("Preus", preus))
-    dispatcher.add_handler(CommandHandler("veles", veles))
-    dispatcher.add_handler(CommandHandler("diesel", diesel))
-    dispatcher.add_handler(CommandHandler("PnF", pnf))
-    dispatcher.add_handler(CommandHandler("Veles_BTC", veles_btc))
-    dispatcher.add_handler(CommandHandler("PnF_BTC", pnf_btc))
-    dispatcher.add_handler(CommandHandler("Veles_BNB", veles_bnb))
-    dispatcher.add_handler(CommandHandler("PnF_BNB", pnf_bnb))
-    dispatcher.add_handler(CommandHandler("Veles_ETH", veles_eth))
-    dispatcher.add_handler(CommandHandler("PnF_ETH", pnf_eth))
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("Transit", transit))
+    application.add_handler(CommandHandler("receptes", receptes))
+    application.add_handler(CommandHandler("selecciona", selecciona))
+    application.add_handler(CommandHandler("Preus", preus))
+    application.add_handler(CommandHandler("veles", veles))
+    application.add_handler(CommandHandler("diesel", diesel))
+    application.add_handler(CommandHandler("PnF", pnf))
+    application.add_handler(CommandHandler("Veles_BTC", veles_btc))
+    application.add_handler(CommandHandler("PnF_BTC", pnf_btc))
+    application.add_handler(CommandHandler("Veles_BNB", veles_bnb))
+    application.add_handler(CommandHandler("PnF_BNB", pnf_bnb))
+    application.add_handler(CommandHandler("Veles_ETH", veles_eth))
+    application.add_handler(CommandHandler("PnF_ETH", pnf_eth))
 
     # Start del bot
-    updater.start_polling()
+    application.run_polling()
 
     # Detener el bot con Ctrl + C
-    updater.idle()
+    # updater.idle()

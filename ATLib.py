@@ -3,7 +3,14 @@ from bs4 import BeautifulSoup
 import csv
 import re
 import yfinance as yf
+import os
+import matplotlib
+# Forcem backend "headless" abans de qualsevol import de pyplot
+os.environ["MPLBACKEND"] = "Agg"
+matplotlib.use("Agg")  # backend sense GUI
 import matplotlib.pyplot as plt
+# Sobreescrivim plt.show perquè no faci res
+plt.show = lambda *args, **kwargs: None
 import numpy as np
 import mplfinance as mpf
 import pandas as pd
@@ -16,6 +23,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import tempfile
+from pypnf import PointFigureChart
 
 # Funcions per obtenir les receptes d'allstendres
 def obtenir_enllacos_des_de_pagina_principal(url_principal):
@@ -104,10 +112,10 @@ def obtenir_dades(tickers):
     # Obtener el precio de cierre y la variación para cada ticker
     for ticker in tickers:
         data = yf.Ticker(ticker).history(period='1wk')  # Obtener los datos del último día
-        closing_price = data['Close'][-1]  # Extraer el precio de cierre
+        closing_price = data['Close'].iloc[-1]  # Extraer el precio de cierre
         closing_prices[ticker] = closing_price
         data['Variació_preu_%'] = data['Close'].pct_change() * 100
-        var = data['Variació_preu_%'][-1]
+        var = data['Variació_preu_%'].iloc[-1]
         var_prices[ticker] = var
     
     for ticker in tickers:
@@ -214,6 +222,7 @@ def pnf(par):
 
     return imagen_path
 
+
 def transit():
     # Configuració del navegador
     options = Options()
@@ -288,8 +297,9 @@ def transit():
         # envia_missatge(missatge)
 
     finally:
-        return missatge
         driver.quit()
+        
+    return missatge
 
 def diesel():
     urls = [
@@ -300,6 +310,8 @@ def diesel():
         "https://preciocombustible.es/barcelona/cabrera-de-mar/12728-esclatoil",
         "https://preciocombustible.es/barcelona/mataro/14113-gm-oil",
         "https://preciocombustible.es/barcelona/mataro/15825-petroprix",
+        "https://preciocombustible.es/barcelona/ripollet/14552-petroprix",
+    
     ]
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0 Safari/537.36"
@@ -315,7 +327,7 @@ def diesel():
 
         preu = soup.find("span", itemprop="price")
         gasolinera = soup.select_one("ul li.uk-text-large.uk-text-bold.uk-text-center")
-        actualitzacio = soup.select_one("body > div > main > div > div > div.uk-grid.uk-child-width-1-2\@m.uk-grid-match.uk-grid-stack > div:nth-child(1) > div > ul > li:nth-child(2)")
+        actualitzacio = soup.select_one(r"body > div > main > div > div > div.uk-grid.uk-child-width-1-2\@m.uk-grid-match.uk-grid-stack > div:nth-child(1) > div > ul > li:nth-child(2)")
         ciutat = soup.select_one("ul li:nth-child(4)")
         preu_float = float(preu.text.replace(",", "."))
         diposit = round(preu_float*35,1)
@@ -339,60 +351,5 @@ def diesel():
             """
 
     return(missatge)
+
     
-def temperatura():
-    options = Options()
-    options.add_argument("--headless")  # opcional, perquè no s'obri Chrome
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-    try:
-        driver.get("https://nauticmasnou.com/meteo/")
-
-        # Acceptar cookies si cal
-        try:
-            boto_cookies = WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.CSS_SELECTOR, "#wt-cli-accept-all-btn"))
-            )
-            boto_cookies.click()
-        except:
-            pass
-
-        # Entrar a l'iframe [1] (Weatherlink)
-        iframes = driver.find_elements(By.TAG_NAME, "iframe")
-        driver.switch_to.frame(iframes[1])
-
-        # Temperatura actual
-        temperatura_elem = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.col-8.no-padding"))
-        )
-        temperatura_valor = float(re.sub(r"[^\d,]", "", temperatura_elem.text.strip()).replace(",", "."))
-
-        # Màx i mín
-        hi_lo_elem = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div.temp-hi-lo"))
-        )
-        spans = hi_lo_elem.find_elements(By.TAG_NAME, "span")
-
-        high_valor = float(re.sub(r"[^\d,]", "", spans[0].text.strip()).replace(",", "."))
-        high_time = spans[1].text.strip()
-
-        low_valor = float(re.sub(r"[^\d,]", "", spans[2].text.strip()).replace(",", "."))
-        low_time = spans[3].text.strip()
-
-        # Missatge formatat
-        missatge = (
-            f"Meteo Masnou\n"
-            f"Actual: {temperatura_valor} °C\n"
-            f"Màx: {high_valor} °C {high_time}\n"
-            f"Mín: {low_valor} °C {low_time}"
-        )
-
-        # Enviar per Telegram
-        # enviar_telegram(missatge)
-        # print("✅ Missatge enviat per Telegram!")
-        return missatge
-    finally:
-        driver.quit()
