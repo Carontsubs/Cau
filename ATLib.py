@@ -24,6 +24,89 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import tempfile
 from pypnf import PointFigureChart
+from collections import Counter
+from itertools import combinations
+
+
+def generar_lotto_recomanacio():
+    # --- CONFIGURACIÓ DE DESCÀRREGA ---
+    FITXER_PRIMI = "Lotoideas.com - Histórico de Resultados - Primitiva - 2013 a 202X(1).csv"
+    FITXER_BONO = "Lotoideas.com - Histórico de Resultados - Bonoloto - 2013 a 202X(1).csv"
+    HEADERS = {'User-Agent': 'Mozilla/5.0'}
+    
+    print("🛰️ Actualitzant dades de loteria des de la web...")
+    tasques = [
+        ("https://www.lotoideas.com/primitiva-resultados-historicos-de-todos-los-sorteos/", FITXER_PRIMI, "gid=1"),
+        ("https://www.lotoideas.com/bonoloto-resultados-historicos-de-todos-los-sorteos/", FITXER_BONO, "gid=0")
+    ]
+    
+    for url, nom, gid in tasques:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=10)
+            soup = BeautifulSoup(r.text, 'html.parser')
+            link = next((a['href'] for a in soup.find_all('a', href=True) if "output=csv" in a['href'] and gid in a['href']), None)
+            if link:
+                with open(nom, 'wb') as f: 
+                    f.write(requests.get(link).content)
+                print(f"✅ {nom} actualitzat.")
+        except Exception as e:
+            print(f"⚠️ Error descarregant {nom}: {e}")
+
+    # --- LÒGICA D'ANÀLISI (90 DIES) ---
+    avui = datetime.now()
+    lim_mom = avui - timedelta(days=30)
+    lim_biaix = avui - timedelta(days=90)
+
+    stats_mom, stats_hist, triplets_cnt = Counter(), Counter(), Counter()
+    sort_mom = 0
+
+    for f_nom in [FITXER_PRIMI, FITXER_BONO]:
+        if os.path.exists(f_nom):
+            with open(f_nom, mode='r', encoding='utf-8') as f:
+                reader = csv.reader(f); next(reader)
+                for fila in reader:
+                    if len(fila) < 7: continue
+                    dt = None
+                    d_str = fila[0].split(' ')[0].replace('-', '/')
+                    for fmt in ["%d/%m/%Y", "%Y/%m/%d"]:
+                        try: dt = datetime.strptime(d_str, fmt); break
+                        except: continue
+                    
+                    if not dt: continue
+                    nums = sorted([int(n) for n in fila[1:7] if n.strip().isdigit()])
+                    
+                    if dt >= lim_mom:
+                        sort_mom += 1
+                        for n in nums: stats_mom[n] += 1
+                    if dt >= lim_biaix:
+                        for n in nums: stats_hist[n] += 1
+                        for t in combinations(nums, 3): triplets_cnt[t] += 1
+
+    scores = []
+    top_triplets = [t for t, _ in triplets_cnt.most_common(50)]
+    for n in range(1, 50):
+        punts = 0
+        if stats_mom[n] > (sort_mom * 0.15): punts += 45 
+        if stats_hist[n] > 0: punts += (stats_hist[n] * 0.7)
+        for t in top_triplets:
+            if n in t: punts += 12
+        scores.append((n, punts))
+
+    scores.sort(key=lambda x: x[1], reverse=True)
+    ap_a = sorted([n for n, p in scores[:6]])
+    ap_b = sorted([n for n, p in scores[6:12]])
+    
+    return (
+        f"🎯 *LOTERIA DE DADES* - {avui.strftime('%d/%m/%Y')}\n"
+        f"📊 Dades actualitzades ara mateix\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎰 *APOSTA PRINCIPAL*\n"
+        f"`{' - '.join(f'{n:02d}' for n in ap_a)}`\n\n"
+        f"🎰 *APOSTA SECUNDÀRIA*\n"
+        f"`{' - '.join(f'{n:02d}' for n in ap_b)}`\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"💰 _Cost: 13,00€ / setmana_"
+    )
 
 # Funcions per obtenir les receptes d'allstendres
 def obtenir_enllacos_des_de_pagina_principal(url_principal):

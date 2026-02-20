@@ -9,6 +9,19 @@ load_dotenv()
 TOKEN = os.getenv("TOKEN_TELEGRAM")
 
 # Función del comandos
+async def lotto(update, context: ContextTypes.DEFAULT_TYPE):
+    # Opcional: Pots posar un missatge de "processant" si triga molt
+    # await update.message.reply_text("🔎 Analitzant biaixos dels últims 90 dies...")
+    
+    message = at.generar_lotto_recomanacio()
+    # Enviem amb parse_mode=Markdown per veure les negretes i el text tipus codi
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text=message, 
+        parse_mode='Markdown'
+    )
+
+
 async def veles(update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Per veure les grafiques en veles disponibles, /Veles_BTC, /Veles_BNB, /Veles_ETH")
 
@@ -82,7 +95,7 @@ async def selecciona(update, context: ContextTypes.DEFAULT_TYPE) -> None:
             await update.message.reply_text("Selecció no vàlida.")
 
 async def start(update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Hola! Per veure les receptes disponibles, usa /receptes.\nUsa /preus, /veles i /PnF per veure les dades de cryptos\n /transit per veure afectacions a BCN\n I /diesel per veure els preus de Diesel")
+    await update.message.reply_text("Hola! Per veure les receptes disponibles, usa /receptes.\nUsa /lotto per veure la combinacio suggerida dde la setmana\n /transit per veure afectacions a BCN\n I /diesel per veure els preus de Diesel")
 
 # Execucio del bot.        
 if __name__ == '__main__':
@@ -107,6 +120,7 @@ if __name__ == '__main__':
     application.add_handler(CommandHandler("PnF_BNB", pnf_bnb))
     application.add_handler(CommandHandler("Veles_ETH", veles_eth))
     application.add_handler(CommandHandler("PnF_ETH", pnf_eth))
+    application.add_handler(CommandHandler("lotto", lotto))
 
     # Start del bot
     application.run_polling()
