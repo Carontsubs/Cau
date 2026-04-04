@@ -1,8 +1,14 @@
 # Variables d'entorn (MOLT IMPORTANT)
 .env
-
+ngrok.exe
 # Entorns Virtuals i Caché de Python
 venv/
 __pycache__/
 *.pyc
 *.log
+
+#Carpetes
+empreses_locals/
+nou_projecte/
+
+
