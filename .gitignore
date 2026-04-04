@@ -6,3 +6,9 @@ venv/
 __pycache__/
 *.pyc
 *.log
+
+#Carpetes
+empreses_locals/
+nou_projecte/
+
+
